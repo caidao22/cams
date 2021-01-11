@@ -10,7 +10,7 @@
 
 int main(int argc,char **argv)
 {
-  int m,s,l = 1,currentstep = 0,lastcheckpointstep,lastcheckpointtype,nextcheckpointstep,nextcheckpointtype,numcheckpoints;
+  int m,s,l = 1,currentstep = 0,lastcheckpointstep,nextcheckpointstep,nextcheckpointtype,numcheckpoints;
 
   if (argc!=3) {
       printf("Wrong command line options. Must input number of checkpoints available and number of time steps (two integers separated by space).\n");
@@ -47,21 +47,29 @@ int main(int argc,char **argv)
 #endif
   currentstep = 0;
   numcheckpoints = s;
-  offline_acms(-1,0,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
+  offline_acms(-1,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
+  if (!nextcheckpointstep) {
+    printf("Store checkpoint at %d\n",currentstep);
+    offline_acms(0,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
+  } else {
+    currentstep++;
+    printf("Store checkpoint at %d with stage values\n",currentstep);
+    numcheckpoints -= l;
+    offline_acms(1,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
+  }
   while (currentstep<m) {
+    currentstep++;
     if (currentstep == nextcheckpointstep) {
-      lastcheckpointtype = nextcheckpointtype;
-      lastcheckpointstep = currentstep;
-      offline_acms(lastcheckpointstep,lastcheckpointtype,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
-      if (lastcheckpointtype == 0) {
+      if (nextcheckpointtype == 0) {
         printf("Store checkpoint at %d\n",currentstep);
         numcheckpoints--;
       } else {
         printf("Store checkpoint at %d with stage values\n",currentstep);
         numcheckpoints -= l+1;
       }
+      lastcheckpointstep = currentstep;
+      offline_acms(lastcheckpointstep,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
     }
-    currentstep++;
   }
   offline_acms_destroy();
   return 1;

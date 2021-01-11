@@ -109,7 +109,7 @@ void printpath_ac(int m, int s)
 /* It is assumed that s>1 and m> 2*/
 void dp2(int m, int s, int l, int **ptr_P, int **ptr_Path, int **ptr_S)
 {
-  int i,j,k;
+  int i,j,k,p0,p1;
   int *P = (int *)malloc(m*s*sizeof(int));
   int *Path = (int *)malloc(m*s*sizeof(int));
   int *S = (int *)malloc(m*s*sizeof(int));
@@ -143,17 +143,20 @@ void dp2(int m, int s, int l, int **ptr_P, int **ptr_Path, int **ptr_S)
         S(i,j,m) = 1;
       } else {
         P(i,j,m) = INT_MAX;
-        for (k=0; k<j; k++) {
-          if (i>l+1 && k != j-1 && P(i-1-l,j-k-1,m) < P(i-1,j-k,m)) {
-            pmin = P(i-1-l,j-k-1,m);
-            store_stage = 1;
-          } else {
-            pmin = P(i-1,j-k,m);
-            store_stage = 0;
+        for (k=1; k<j; k++) {
+          p0 = k + P(i,k,m) + P(i-1,j-k,m);
+          pmin = p0;
+          store_stage = 0;
+          if (i>l+1) {
+            if (k == 1) p1 = P(i-1-l,j-k,m);
+            else p1 = k - 1 + P(i,k-1,m) + P(i-1-l,j-k,m);
+            if (p1<p0) {
+              pmin = p1;
+              store_stage = 1;
+            }
           }
-          //printf("i=%d j=%d k=%d pmin=%d store=%d\n",i,j,k,pmin,store_stage);
-          if ((k==0 && pmin < P(i,j,m)) || (k!=0 && k+P(i,k,m)+pmin < P(i,j,m))) {
-            P(i,j,m) = k+P(i,k,m)+pmin;
+          if (pmin < P(i,j,m)) {
+            P(i,j,m) = pmin;
             Path(i,j,m) = k;
             S(i,j,m) = store_stage;
           }
@@ -199,35 +202,32 @@ void printpath_acms(int m, int s, int l)
   int k,current_step = 0,store_stage,num_checkpoints_avail = s;
   int *P = acms_ctx.P,*Path = acms_ctx.Path,*S = acms_ctx.S;
 
-  if (m>1 && s>l+1 && P(s-l,m-1,acms_ctx.m) > P(s,m,acms_ctx.m)) {
-    printf("next checkpoint is at 0\n");
-    k = Path(s,m,acms_ctx.m);
-    store_stage = S(s,m,acms_ctx.m);
-    num_checkpoints_avail--;
-  } else {
+  if (m>1 && s>l+1 && P(s-l,m-1,acms_ctx.m) <= P(s,m,acms_ctx.m)) {
     printf("next checkpoint is at 1(solution+stages)\n");
-    k = Path(s-l,m-1,acms_ctx.m);
-    store_stage = S(s-l,m-1,acms_ctx.m);
-    num_checkpoints_avail-= l+1;
     current_step++;
+    num_checkpoints_avail-= l;
+    k = Path(num_checkpoints_avail,m-1,acms_ctx.m);
+    store_stage = S(num_checkpoints_avail,m-1,acms_ctx.m);
+    //printf("Path(%d %d)=%d\n",num_checkpoints_avail,m-1,k);
+  } else {
+    printf("next checkpoint is at 0\n");
+    k = Path(num_checkpoints_avail,m,acms_ctx.m);
+    store_stage = S(num_checkpoints_avail,m,acms_ctx.m);
+    //printf("Path(%d %d)=%d\n",num_checkpoints_avail,m,k);
   }
 
-  while(num_checkpoints_avail && current_step<m-1) {
+  while(k>0 && num_checkpoints_avail && current_step<m-1) {
     current_step = current_step+k;
     if (store_stage) {
       printf("next checkpoint is at %d (solution+stages)\n",current_step);
-      k = Path(num_checkpoints_avail-l,m-current_step,acms_ctx.m);
-      //printf("Path(%d %d)=%d\n",num_checkpoints_avail-l,m-current_step-1,k);
-      store_stage = S(num_checkpoints_avail-l,m-current_step,acms_ctx.m);
-      current_step++;
       num_checkpoints_avail -= l+1;
     } else {
       printf("next checkpoint is at %d\n",current_step);
-      k = Path(num_checkpoints_avail,m-current_step,acms_ctx.m);
-      //printf("Path(%d %d)=%d\n",num_checkpoints_avail,m-current_step,k);
-      store_stage = S(num_checkpoints_avail,m-current_step,acms_ctx.m);
       num_checkpoints_avail--;
     }
+    k = Path(num_checkpoints_avail,m-current_step,acms_ctx.m);
+    store_stage = S(num_checkpoints_avail,m-current_step,acms_ctx.m);
+    //printf("Path(%d %d)=%d\n",num_checkpoints_avail,m-current_step,k);
   }
 }
 #endif
@@ -253,50 +253,43 @@ int offline_acms_destroy()
 }
 
 /* num_checkpoints_avail includes the last checkpoint. */
-int offline_acms(int lastcheckpointstep, int lastcheckpointtype, int num_checkpoints_avail, int endstep, int num_stages, int *nextcheckpointstep, int *nextcheckpointtype)
+int offline_acms(int lastcheckpointstep, int num_checkpoints_avail, int endstep, int num_stages, int *nextcheckpointstep, int *nextcheckpointtype)
 {
-  int m = endstep-lastcheckpointstep,s = num_checkpoints_avail,l = num_stages;
+  int m,s = num_checkpoints_avail,l = num_stages;
   int *P = acms_ctx.P,*Path = acms_ctx.Path,*S = acms_ctx.S;
 
+  if (lastcheckpointstep == -1)
+    m = endstep;
+  else
+    m = endstep-lastcheckpointstep;
   if (!acms_ctx.initialize) offline_acms_create(m,s,l);
-  if (m <= 0) {
+
+  if (s<1) return 1; /* error */
+
+  if (endstep == 1) {
     offline_acms_destroy();
+    *nextcheckpointtype = 0;
+    *nextcheckpointstep = -1;
     return 0;
   }
-  if ((lastcheckpointtype && s<l+1) || s<1) return 1; /* error */
-  if (lastcheckpointtype) {
-    if (s == l+1 || m < 2 || (m == 2 && s<2*(l+1))) {
-      *nextcheckpointtype = 1;
-      *nextcheckpointstep = -1;
-      return 0;
-    }
-  }
-
-  if (!lastcheckpointtype) {
-    if (s == 1 || m < 3) {
-      *nextcheckpointtype = 0;
-      *nextcheckpointstep = -1;
-      return 0;
-    }
+  if (s == 1 || m < 2 || (m == 2 && s<l+2)) {
+    *nextcheckpointtype = 0;
+    *nextcheckpointstep = -1;
+    return 0;
   }
 
   if (lastcheckpointstep == -1) {
-   if (m>1 && s>l+1 && P(s-l,m-1,acms_ctx.m) > P(s,m,acms_ctx.m)) {
-    *nextcheckpointtype = 0;
-    *nextcheckpointstep = 0;
-   } else {
-    *nextcheckpointtype = 1;
-    *nextcheckpointstep = 1;
-   }
-  } else {
-    if (lastcheckpointtype) {
-      *nextcheckpointtype = S(s-l,m,acms_ctx.m);
-      *nextcheckpointstep = lastcheckpointstep + Path(s-l,m,acms_ctx.m);
+    if (s>l+1 && P(s-l,m-1,acms_ctx.m) <= P(s,m,acms_ctx.m)) {
+      *nextcheckpointtype = 1;
+      *nextcheckpointstep = 1;
     } else {
-      *nextcheckpointtype = S(s,m,acms_ctx.m);
-      *nextcheckpointstep = lastcheckpointstep + Path(s,m,acms_ctx.m);
+      *nextcheckpointtype = 0;
+      *nextcheckpointstep = 0;
     }
+    return 0;
   }
+  *nextcheckpointtype = S(s,m,acms_ctx.m);
+  *nextcheckpointstep = lastcheckpointstep + Path(s,m,acms_ctx.m);
   return 0;
 }
 
