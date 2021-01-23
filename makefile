@@ -1,6 +1,6 @@
 include ./make.inc
-SRC_DIR = src
-INC_DIR = src
+SRC_DIR = acms
+INC_DIR = acms
 TEST_DIR = test
 ACMSLIB = libacms.$(AR_LIB_SUFFIX)
 
