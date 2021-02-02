@@ -104,7 +104,6 @@ void dp2(int m, int s, int l, int **ptr_P, int **ptr_PPATH, int **ptr_PTYPE)
   int *P = (int *)malloc(m*s*sizeof(int));
   int *PPATH = (int *)malloc(m*s*sizeof(int));
   int *PTYPE = (int *)malloc(m*s*sizeof(int));
-  int pmin,store_stage;
 
   /* Initialize P(1,*) */
   for (j=1; j<=m; j++) {
@@ -135,22 +134,23 @@ void dp2(int m, int s, int l, int **ptr_P, int **ptr_PPATH, int **ptr_PTYPE)
         PTYPE(i,j,m) = 1;
       } else {
         P(i,j,m) = INT_MAX;
-        for (k=1; k<j; k++) {
-          p0 = k + P(i,k,m) + P(i-1,j-k,m);
-          pmin = p0;
-          store_stage = 0;
-          if (i > l) {
+        if (i > l) {
+          for (k=1; k<j; k++) {
             if (k == 1) p1 = P(i-l,j-k,m);
             else p1 = k - 1 + P(i,k-1,m) + P(i-l,j-k,m);
-            if (p1 <= p0) {
-              pmin = p1;
-              store_stage = 1;
+            if (p1 <= P(i,j,m)) { /* prioritize type 1 */
+              P(i,j,m) = p1;
+              PPATH(i,j,m) = k;
+              PTYPE(i,j,m) = 1;
             }
           }
-          if (pmin < P(i,j,m)) {
-            P(i,j,m) = pmin;
+        }
+        for (k=1; k<j; k++) {
+          p0 = k + P(i,k,m) + P(i-1,j-k,m);
+          if (p0 < P(i,j,m)) {
+            P(i,j,m) = p0;
             PPATH(i,j,m) = k;
-            PTYPE(i,j,m) = store_stage;
+            PTYPE(i,j,m) = 0;
           }
         }
       }
@@ -170,7 +170,7 @@ void ddp(int m, int s, int l, int **ptr_P, int **ptr_PPATH, int **ptr_PTYPE, int
   int *Q = (int *)malloc(m*s*sizeof(int));
   int *QPATH = (int *)malloc(m*s*sizeof(int));
   int *QTYPE = (int *)malloc(m*s*sizeof(int));
-  int pqmin,store_stage;
+  int p1,p2;
 
   /* Initialize P(1,*) (s=1) with one checkpoint */
   for (j=1; j<=m; j++) {
@@ -225,23 +225,27 @@ void ddp(int m, int s, int l, int **ptr_P, int **ptr_PPATH, int **ptr_PTYPE, int
       } else {
         P(i,j,m) = INT_MAX;
         Q(i,j,m) = INT_MAX;
-        for (k=1; k<j-1; k++) {
-          if (i-1 >= l && Q(i-1,j-k,m) < P(i-1,j-k,m)) {
-            pqmin = k + P(i,k,m) + Q(i-1,j-k,m);
-            store_stage = 1;
-          } else {
-             /*
-               Storing a solution-only checkpoint has the priority. We dont want to see cases that stages values follow immediately after a solution.
-              */
-            pqmin = k + P(i,k,m) + P(i-1,j-k,m);
-            store_stage = 0;
-          }
-          if (pqmin < P(i,j,m)) {
-            P(i,j,m) = pqmin;
-            PPATH(i,j,m) = store_stage ? k+1 : k ;
-            PTYPE(i,j,m) = store_stage;
+        if (i-1 >= l) {
+          for (k=2; k<j; k++) {
+            if (Q(i-1,j-k+1,m) < P(i-1,j-k+1,m)) {
+              p2 = k - 1 + P(i,k-1,m) + Q(i-1,j-k+1,m);
+              if (p2 <= P(i,j,m)) {
+                P(i,j,m) = p2;
+                PPATH(i,j,m) = k;
+                PTYPE(i,j,m) = 1;
+              }
+            }
           }
         }
+        for (k=1; k<j-1; k++) {
+          p1 = k + P(i,k,m) + P(i-1,j-k,m);
+          if (p1 < P(i,j,m)) {
+            P(i,j,m) = p1;
+            PPATH(i,j,m) = k;
+            PTYPE(i,j,m) = 0;
+          }
+        }
+
         if (i > l) {
           if (P(i-l,j-1,m) < Q(i-l,j-1,m)) {
             Q(i,j,m) = P(i-l,j-1,m);
