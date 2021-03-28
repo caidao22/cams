@@ -34,6 +34,6 @@ dp_test.o: $(TEST_DIR)/dp_test.c $(INC_DIR)/offline_schedule.h
 	$(CC) $(CFLAGS) -c $(TEST_DIR)/dp_test.c -I$(INC_DIR)
 
 dp_test: dp_test.o
-	$(CC) -o dp_test dp_test.o $(ACMSLIB)
+	$(CC) $(CFLAGS) -o dp_test dp_test.o $(ACMSLIB)
 
 .PHONY:clean
