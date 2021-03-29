@@ -408,17 +408,13 @@ int offline_acms(int lastcheckpointstep, int lastcheckpointtype, int num_checkpo
     if (lastcheckpointtype == 0) {
       *nextcheckpointtype = PTYPE(s,m,acms_ctx.m);
       *nextcheckpointstep = lastcheckpointstep + PPATH(s,m,acms_ctx.m);
-      // look ahead
-      if ((*nextcheckpointtype) == 1 && QTYPE(s-1,m-(*nextcheckpointstep)+1,acms_ctx.m) == 0) *nextcheckpointtype = 2;
     }
     if (lastcheckpointtype == 1) { // QPATH = 0 or 1
       *nextcheckpointtype = QTYPE(s,m,acms_ctx.m);
       *nextcheckpointstep = lastcheckpointstep + QPATH(s,m,acms_ctx.m);
-      // look ahead
-      if ((*nextcheckpointtype) == 1 && QTYPE(s-l,m-(*nextcheckpointstep)+1,acms_ctx.m) == 0) { 
-        *nextcheckpointtype = 2;
-      }
     }
+    // look ahead
+    if ((*nextcheckpointtype) == 1 && QTYPE(s-l,endstep-(*nextcheckpointstep)+1,acms_ctx.m) == 0) *nextcheckpointtype = 2;
   }
   return 0;
 }
