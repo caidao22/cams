@@ -1,0 +1,14 @@
+CP               = /bin/cp
+RM               = /bin/rm -f
+MKDIR            = /bin/mkdir -p
+AR               = /usr/bin/ar
+ARFLAGS          = cr
+AR_LIB_SUFFIX    = a
+RANLIB           = /usr/bin/ranlib -c
+PREFIX           =
+#CC               = mpicc
+CC               = gcc
+CFLAGS           = -fPIC -Wall -Wwrite-strings -Wno-strict-aliasing -Wno-unknown-pragmas -fsanitize=address -fno-omit-frame-pointer -g
+#CXX              = mpicxx
+CXX              = g++
+CXXFLAGS         = -fPIC -Wall -Wwrite-strings -Wno-strict-aliasing -Wno-unknown-pragmas -fsanitize=address -fno-omit-frame-pointer -g
