@@ -23,8 +23,8 @@ typedef struct {
   int *QTYPE;          // checkpoint type, 0 solution only, 1 stage values, 2 both
 } _ctx;
 
-_ctx acms_ctx;
-_ctx ac_ctx;
+_ctx cams_ctx;
+_ctx ca_ctx;
 
 /*
   P(s,m) - number of extra forward steps to adjoin m steps given s checkpoints
@@ -72,12 +72,12 @@ void dp(int m, int s, int **ptr_P, int **ptr_Path)
 }
 
 #if defined(DEBUG)
-void printstates_ac(int m, int s)
+void printstates_ca(int m, int s)
 {
   int i,j;
-  int *P = ac_ctx.P,*PPATH = ac_ctx.PPATH;
+  int *P = ca_ctx.P,*PPATH = ca_ctx.PPATH;
 
-  if (m!=ac_ctx.m || s!=ac_ctx.s) {
+  if (m!=ca_ctx.m || s!=ca_ctx.s) {
     printf("Error in arguments.\n");
   }
   printf("PPATH:\n");
@@ -268,52 +268,52 @@ void ddp(int m, int s, int l, int **ptr_P, int **ptr_PPATH, int **ptr_PTYPE, int
 }
 
 #if defined(DEBUG)
-void printstates_acms(int m, int s, int l)
+void printstates_cams(int m, int s, int l)
 {
   int i,j;
-  int *P = acms_ctx.P,*PPATH = acms_ctx.PPATH,*PTYPE = acms_ctx.PTYPE;
+  int *P = cams_ctx.P,*PPATH = cams_ctx.PPATH,*PTYPE = cams_ctx.PTYPE;
 
   printf("PPATH:\n");
   for (i=1; i<=s; i++) {
     for (j=1; j<=m; j++) {
-      printf("(%-3d %3d) %3d    ",i,j,PPATH(i,j,acms_ctx.m));
+      printf("(%-3d %3d) %3d    ",i,j,PPATH(i,j,cams_ctx.m));
     }
     printf("\n");
   }
   printf("\nP:\n");
   for (i=1; i<=s; i++) {
     for (j=1; j<=m; j++) {
-      printf("(%-3d %3d) %3d    ",i,j,P(i,j,acms_ctx.m));
+      printf("(%-3d %3d) %3d    ",i,j,P(i,j,cams_ctx.m));
     }
     printf("\n");
   }
   printf("\nPTYPE:\n");
   for (i=1; i<=s; i++) {
     for (j=1; j<=m; j++) {
-      printf("(%-3d %3d) %3d    ",i,j,PTYPE(i,j,acms_ctx.m));
+      printf("(%-3d %3d) %3d    ",i,j,PTYPE(i,j,cams_ctx.m));
     }
     printf("\n");
   }
-  if (!acms_ctx.stifflyaccurate) {
-    int *Q = acms_ctx.Q,*QPATH = acms_ctx.QPATH,*QTYPE = acms_ctx.QTYPE;
+  if (!cams_ctx.stifflyaccurate) {
+    int *Q = cams_ctx.Q,*QPATH = cams_ctx.QPATH,*QTYPE = cams_ctx.QTYPE;
     printf("\nQPATH:\n");
     for (i=1; i<=s; i++) {
       for (j=1; j<=m; j++) {
-        printf("(%-3d %3d) %3d    ",i,j,QPATH(i,j,acms_ctx.m));
+        printf("(%-3d %3d) %3d    ",i,j,QPATH(i,j,cams_ctx.m));
       }
       printf("\n");
     }
     printf("\nQ:\n");
     for (i=1; i<=s; i++) {
       for (j=1; j<=m; j++) {
-        printf("(%-3d %3d) %3d    ",i,j,Q(i,j,acms_ctx.m));
+        printf("(%-3d %3d) %3d    ",i,j,Q(i,j,cams_ctx.m));
       }
       printf("\n");
     }
     printf("\nQTYPE:\n");
     for (i=1; i<=s; i++) {
       for (j=1; j<=m; j++) {
-        printf("(%-3d %3d) %3d    ",i,j,QTYPE(i,j,acms_ctx.m));
+        printf("(%-3d %3d) %3d    ",i,j,QTYPE(i,j,cams_ctx.m));
       }
       printf("\n");
     }
@@ -321,42 +321,42 @@ void printstates_acms(int m, int s, int l)
 }
 #endif
 
-int offline_acms_create(int m, int s, int l, int stifflyaccurate)
+int offline_cams_create(int m, int s, int l, int stifflyaccurate)
 {
-  acms_ctx.initialize = 1;
-  acms_ctx.m = m;
-  acms_ctx.s = s;
-  acms_ctx.stifflyaccurate = stifflyaccurate;
+  cams_ctx.initialize = 1;
+  cams_ctx.m = m;
+  cams_ctx.s = s;
+  cams_ctx.stifflyaccurate = stifflyaccurate;
   if (stifflyaccurate) {
-    dp2(m,s,l,&acms_ctx.P,&acms_ctx.PPATH,&acms_ctx.PTYPE);
+    dp2(m,s,l,&cams_ctx.P,&cams_ctx.PPATH,&cams_ctx.PTYPE);
   } else {
-    ddp(m,s,l,&acms_ctx.P,&acms_ctx.PPATH,&acms_ctx.PTYPE,&acms_ctx.Q,&acms_ctx.QPATH,&acms_ctx.QTYPE);
+    ddp(m,s,l,&cams_ctx.P,&cams_ctx.PPATH,&cams_ctx.PTYPE,&cams_ctx.Q,&cams_ctx.QPATH,&cams_ctx.QTYPE);
   }
   return 0;
 }
 
-int offline_acms_destroy()
+int offline_cams_destroy()
 {
-  if (acms_ctx.initialize) {
-    acms_ctx.initialize = 0;
-    free(acms_ctx.P);
-    free(acms_ctx.PPATH);
-    free(acms_ctx.PTYPE);
-    if (acms_ctx.stifflyaccurate) {
-      free(acms_ctx.Q);
-      free(acms_ctx.QPATH);
-      free(acms_ctx.QTYPE);
+  if (cams_ctx.initialize) {
+    cams_ctx.initialize = 0;
+    free(cams_ctx.P);
+    free(cams_ctx.PPATH);
+    free(cams_ctx.PTYPE);
+    if (cams_ctx.stifflyaccurate) {
+      free(cams_ctx.Q);
+      free(cams_ctx.QPATH);
+      free(cams_ctx.QTYPE);
     }
   }
   return 0;
 }
 
 /* num_checkpoints_avail includes the last checkpoint. */
-int offline_acms(int lastcheckpointstep, int lastcheckpointtype, int num_checkpoints_avail, int endstep, int num_stages, int *nextcheckpointstep, int *nextcheckpointtype)
+int offline_cams(int lastcheckpointstep, int lastcheckpointtype, int num_checkpoints_avail, int endstep, int num_stages, int *nextcheckpointstep, int *nextcheckpointtype)
 {
   int m,s = num_checkpoints_avail,l = num_stages;
-  int *P = acms_ctx.P,*PPATH = acms_ctx.PPATH,*PTYPE = acms_ctx.PTYPE;
-  int *Q = acms_ctx.Q,*QPATH = acms_ctx.QPATH,*QTYPE = acms_ctx.QTYPE;
+  int *P = cams_ctx.P,*PPATH = cams_ctx.PPATH,*PTYPE = cams_ctx.PTYPE;
+  int *Q = cams_ctx.Q,*QPATH = cams_ctx.QPATH,*QTYPE = cams_ctx.QTYPE;
 
   if (lastcheckpointtype == -1) m = endstep;
   else if (lastcheckpointtype == 0) m = endstep-lastcheckpointstep;
@@ -371,8 +371,8 @@ int offline_acms(int lastcheckpointstep, int lastcheckpointtype, int num_checkpo
   }
 
   if (lastcheckpointstep == -1) {
-    if (acms_ctx.stifflyaccurate) {
-      if (s >= l && P(s-l+1,m-1,acms_ctx.m) <= P(s,m,acms_ctx.m)) {
+    if (cams_ctx.stifflyaccurate) {
+      if (s >= l && P(s-l+1,m-1,cams_ctx.m) <= P(s,m,cams_ctx.m)) {
         *nextcheckpointtype = 1;
         *nextcheckpointstep = 1;
       } else {
@@ -380,9 +380,9 @@ int offline_acms(int lastcheckpointstep, int lastcheckpointtype, int num_checkpo
         *nextcheckpointstep = 0;
       }
     } else {
-      if (Q(s,m,acms_ctx.m) <= P(s,m,acms_ctx.m)) {
+      if (Q(s,m,cams_ctx.m) <= P(s,m,cams_ctx.m)) {
         // look ahead
-        *nextcheckpointtype = QTYPE(s,m,acms_ctx.m) ? 1 : 2;
+        *nextcheckpointtype = QTYPE(s,m,cams_ctx.m) ? 1 : 2;
         *nextcheckpointstep = 1;
       } else {
         *nextcheckpointtype = 0;
@@ -392,72 +392,73 @@ int offline_acms(int lastcheckpointstep, int lastcheckpointtype, int num_checkpo
     return 0;
   }
 
-  if (acms_ctx.stifflyaccurate && lastcheckpointtype) return offline_acms(lastcheckpointstep,0,num_checkpoints_avail-l+1,endstep,num_stages,nextcheckpointstep,nextcheckpointtype);
+  if (cams_ctx.stifflyaccurate && lastcheckpointtype) return offline_cams(lastcheckpointstep,0,num_checkpoints_avail-l+1,endstep,num_stages,nextcheckpointstep,nextcheckpointtype);
 
-  if (!acms_ctx.stifflyaccurate && lastcheckpointtype==2) return offline_acms(lastcheckpointstep,0,num_checkpoints_avail-l,endstep,num_stages,nextcheckpointstep,nextcheckpointtype);
+  if (!cams_ctx.stifflyaccurate && lastcheckpointtype==2) return offline_cams(lastcheckpointstep,0,num_checkpoints_avail-l,endstep,num_stages,nextcheckpointstep,nextcheckpointtype);
 
-  if (acms_ctx.stifflyaccurate) {
+  if (cams_ctx.stifflyaccurate) {
     // lastcheckpointtype is always 0
-      *nextcheckpointtype = PTYPE(s,m,acms_ctx.m);
-      *nextcheckpointstep = lastcheckpointstep + PPATH(s,m,acms_ctx.m);
+      *nextcheckpointtype = PTYPE(s,m,cams_ctx.m);
+      *nextcheckpointstep = lastcheckpointstep + PPATH(s,m,cams_ctx.m);
     // if (lastcheckpointtype == 1) {
-    //   *nextcheckpointtype = PTYPE(s-l+1,m-1,acms_ctx.m);
-    //   *nextcheckpointstep = lastcheckpointstep + PPATH(s-l+1,m-1,acms_ctx.m);
+    //   *nextcheckpointtype = PTYPE(s-l+1,m-1,cams_ctx.m);
+    //   *nextcheckpointstep = lastcheckpointstep + PPATH(s-l+1,m-1,cams_ctx.m);
     // }
   } else{
     if (lastcheckpointtype == 0) {
-      *nextcheckpointtype = PTYPE(s,m,acms_ctx.m);
-      *nextcheckpointstep = lastcheckpointstep + PPATH(s,m,acms_ctx.m);
+      *nextcheckpointtype = PTYPE(s,m,cams_ctx.m);
+      *nextcheckpointstep = lastcheckpointstep + PPATH(s,m,cams_ctx.m);
     }
     if (lastcheckpointtype == 1) { // QPATH = 0 or 1
-      *nextcheckpointtype = QTYPE(s,m,acms_ctx.m);
-      *nextcheckpointstep = lastcheckpointstep + QPATH(s,m,acms_ctx.m);
+      *nextcheckpointtype = QTYPE(s,m,cams_ctx.m);
+      *nextcheckpointstep = lastcheckpointstep + QPATH(s,m,cams_ctx.m);
     }
     // look ahead
-    if ((*nextcheckpointtype) == 1 && QTYPE(s-l,endstep-(*nextcheckpointstep)+1,acms_ctx.m) == 0) *nextcheckpointtype = 2;
+    if ((*nextcheckpointtype) == 1 && QTYPE(s-l,endstep-(*nextcheckpointstep)+1,cams_ctx.m) == 0) *nextcheckpointtype = 2;
   }
   return 0;
 }
 
-int numfwdstep_acms(int m, int s, int l)
+int numfwdstep_cams(int m, int s, int l)
 {
-  int *P = acms_ctx.P;
-  if (acms_ctx.stifflyaccurate) {
-    if (m > 1 && s >= l && P(s-l+1,m-1,acms_ctx.m) < P(s,m,acms_ctx.m)) return P(s-l+1,m-1,acms_ctx.m);
-    else return P(s,m,acms_ctx.m);
+  int *P = cams_ctx.P;
+  if (s<1) return INT_MIN;
+  if (cams_ctx.stifflyaccurate) {
+    if (m > 1 && s >= l && P(s-l+1,m-1,cams_ctx.m) < P(s,m,cams_ctx.m)) return P(s-l+1,m-1,cams_ctx.m);
+    else return P(s,m,cams_ctx.m);
   } else {
-    int *Q = acms_ctx.Q;
-    return MIN(P(s,m,acms_ctx.m),Q(s,m,acms_ctx.m));
+    int *Q = cams_ctx.Q;
+    return MIN(P(s,m,cams_ctx.m),Q(s,m,cams_ctx.m));
   }
 }
 
-int offline_ac_create(int m, int s)
+int offline_ca_create(int m, int s)
 {
-  ac_ctx.initialize = 1;
-  ac_ctx.m = m;
-  ac_ctx.s = s;
-  dp(m,s,&ac_ctx.P,&ac_ctx.PPATH);
+  ca_ctx.initialize = 1;
+  ca_ctx.m = m;
+  ca_ctx.s = s;
+  dp(m,s,&ca_ctx.P,&ca_ctx.PPATH);
   return 0;
 }
 
-int offline_ac_destroy()
+int offline_ca_destroy()
 {
-  if (ac_ctx.initialize) {
-    ac_ctx.initialize = 0;
-    free(ac_ctx.P);
-    free(ac_ctx.PPATH);
+  if (ca_ctx.initialize) {
+    ca_ctx.initialize = 0;
+    free(ca_ctx.P);
+    free(ca_ctx.PPATH);
   }
   return 0;
 }
 
-int offline_ac(int lastcheckpointstep, int num_checkpoints_avail, int endstep, int *nextcheckpointstep)
+int offline_ca(int lastcheckpointstep, int num_checkpoints_avail, int endstep, int *nextcheckpointstep)
 {
   int m = endstep-lastcheckpointstep,s = num_checkpoints_avail;
-  int *PPATH = ac_ctx.PPATH;
+  int *PPATH = ca_ctx.PPATH;
 
-  if (!ac_ctx.initialize) offline_ac_create(m,s);
+  if (!ca_ctx.initialize) offline_ca_create(m,s);
   if (m <= 0) {
-    offline_ac_destroy();
+    offline_ca_destroy();
     return 0;
   }
   if (s < 1) return 1;
@@ -468,12 +469,12 @@ int offline_ac(int lastcheckpointstep, int num_checkpoints_avail, int endstep, i
   if (lastcheckpointstep == -1 && s>0)
     *nextcheckpointstep = 0;
   else
-    *nextcheckpointstep = lastcheckpointstep + PPATH(s,m,ac_ctx.m);
+    *nextcheckpointstep = lastcheckpointstep + PPATH(s,m,ca_ctx.m);
   return 0;
 }
 
-int numfwdstep_ac(int m, int s)
+int numfwdstep_ca(int m, int s)
 {
-  int *P = ac_ctx.P;
-  return P(s,m,ac_ctx.m);
+  int *P = ca_ctx.P;
+  return P(s,m,ca_ctx.m);
 }

@@ -19,36 +19,36 @@ int main(int argc,char **argv)
   s = atoi(argv[1]);
   m = atoi(argv[2]);
 
-  offline_ac_create(m,s);
-  printf("AC result for (%d,%d) = %d correct result should be %d\n",s,m,numfwdstep_ac(m,s),numfwdstep(m,s));
+  offline_ca_create(m,s);
+  printf("AC result for (%d,%d) = %d correct result should be %d\n",s,m,numfwdstep_ca(m,s),numfwdstep(m,s));
 
 #if defined(DEBUG)
-  printstates_ac(m,s);
+  printstates_ca(m,s);
 #endif
   numcheckpoints = s;
-  offline_ac(-1,numcheckpoints,m,&nextcheckpointstep);
+  offline_ca(-1,numcheckpoints,m,&nextcheckpointstep);
   while (currentstep<m) {
     if (currentstep == nextcheckpointstep) {
       printf("Store checkpoint at %d\n",currentstep);
       lastcheckpointstep = currentstep;
-      offline_ac(lastcheckpointstep,numcheckpoints,m,&nextcheckpointstep);
+      offline_ca(lastcheckpointstep,numcheckpoints,m,&nextcheckpointstep);
       numcheckpoints--;
     }
     currentstep++;
   }
-  offline_ac_destroy();
+  offline_ca_destroy();
 
   l = 2;
-  offline_acms_create(m,s,l,1); // stiffly-accurate
-  printf("\n\nACMS gives (%d,%d) = %d \n",s,m,numfwdstep_acms(m,s,l));
+  offline_cams_create(m,s,l,1); // stiffly-accurate
+  printf("\n\nCAMS gives (%d,%d) = %d \n",s,m,numfwdstep_cams(m,s,l));
 #if defined(DEBUG)
-  printstates_acms(m,s,l);
+  printstates_cams(m,s,l);
 #endif
   currentstep = 0;
   numcheckpoints = s;
-  offline_acms(-1,-1,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
+  offline_cams(-1,-1,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
   if (!nextcheckpointstep) {
-    offline_acms(0,0,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
+    offline_cams(0,0,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
     printf("Store checkpoint at %d with solution\n",currentstep);
     numcheckpoints--;
   }
@@ -57,7 +57,7 @@ int main(int argc,char **argv)
     if (currentstep == nextcheckpointstep) {
       lastcheckpointstep = currentstep;
       lastcheckpointtype = nextcheckpointtype;
-      offline_acms(lastcheckpointstep,lastcheckpointtype,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
+      offline_cams(lastcheckpointstep,lastcheckpointtype,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
       //printf("laststep=%d lasttype=%d s=%d m=%d l=%d nextstep=%d nexttype=%d\n",lastcheckpointstep,lastcheckpointtype,numcheckpoints,m,l,nextcheckpointstep,nextcheckpointtype);
       if (lastcheckpointtype == 0) {
         printf("Store checkpoint at %d with solution\n",currentstep);
@@ -73,19 +73,19 @@ int main(int argc,char **argv)
       }
     }
   }
-  offline_acms_destroy();
+  offline_cams_destroy();
 
   l = 2;
-  offline_acms_create(m,s,l,0); // normal
-  printf("\n\nACMS result for (%d,%d) = %d \n",s,m,numfwdstep_acms(m,s,l));
+  offline_cams_create(m,s,l,0); // normal
+  printf("\n\nCAMS result for (%d,%d) = %d \n",s,m,numfwdstep_cams(m,s,l));
 #if defined(DEBUG)
-  printstates_acms(m,s,l);
+  printstates_cams(m,s,l);
 #endif
   currentstep = 0;
   numcheckpoints = s;
-  offline_acms(-1,-1,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
+  offline_cams(-1,-1,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
   if (!nextcheckpointstep) {
-    offline_acms(0,0,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
+    offline_cams(0,0,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
     printf("Store checkpoint at %d with solution\n",currentstep);
     numcheckpoints--;
   }
@@ -94,7 +94,7 @@ int main(int argc,char **argv)
     if (currentstep == nextcheckpointstep) {
       lastcheckpointstep = currentstep;
       lastcheckpointtype = nextcheckpointtype;
-      offline_acms(lastcheckpointstep,lastcheckpointtype,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
+      offline_cams(lastcheckpointstep,lastcheckpointtype,numcheckpoints,m,l,&nextcheckpointstep,&nextcheckpointtype);
       //printf("laststep=%d lasttype=%d s=%d m=%d l=%d nextstep=%d nexttype=%d\n",lastcheckpointstep,lastcheckpointtype,numcheckpoints,m,l,nextcheckpointstep,nextcheckpointtype);
       if (lastcheckpointtype == 0) {
         printf("Store checkpoint at %d with solution\n",currentstep);
@@ -111,6 +111,6 @@ int main(int argc,char **argv)
     }
   }
 
-  offline_acms_destroy();
+  offline_cams_destroy();
   return 1;
 }

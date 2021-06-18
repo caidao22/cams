@@ -8,12 +8,12 @@ from distutils.spawn import find_executable
 from Cython.Distutils import build_ext
 
 ext_modules = [
-    Extension('acms',
-              sources=['acms/pyacms.pyx','acms/offline_acms.c','acms/offline_revolve.c'],
+    Extension('cams',
+              sources=['cams/pycams.pyx','cams/offline_cams.c','cams/offline_revolve.c'],
               language='c'
              ),
     Extension('ac',
-              sources=['acms/pyac.pyx','acms/offline_acms.c','acms/offline_revolve.c'],
+              sources=['cams/pyca.pyx','cams/offline_cams.c','cams/offline_revolve.c'],
               language='c'
              ),
 ]
@@ -31,12 +31,12 @@ ext_modules = [
 #        _install.run(self)
 
 setup(
-    name='acms',
+    name='cams',
     zip_safe=False,
     version='0.1',
     author='Hong Zhang',
     author_email='hongzhang@anl.gov',
-    description='Adjoint checkpointing for multistage timesteppers',
+    description='Checkpointing for adjoint multistage time stepping schemes',
     ext_modules=ext_modules,
     cmdclass={'build_ext':build_ext},
 )
