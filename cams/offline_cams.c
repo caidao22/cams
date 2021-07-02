@@ -359,16 +359,10 @@ int offline_cams(int lastcheckpointstep, int lastcheckpointtype, int num_checkpo
   int *Q = cams_ctx.Q,*QPATH = cams_ctx.QPATH,*QTYPE = cams_ctx.QTYPE;
 
   if (lastcheckpointtype == -1) m = endstep;
-  else if (lastcheckpointtype == 0) m = endstep-lastcheckpointstep;
-  else m = endstep-lastcheckpointstep+1;
+  if (lastcheckpointtype == 0 || lastcheckpointtype == 2) m = endstep-lastcheckpointstep;
+  if (lastcheckpointtype == 1) m = endstep-lastcheckpointstep+1;
 
   if (s < 1) return 1; /* error */
-
-  if (s == 1 || m < 2 || (m == 2 && lastcheckpointtype==0 && s<l+1)) {
-    *nextcheckpointtype = -1;
-    *nextcheckpointstep = -1;
-    return 0;
-  }
 
   if (lastcheckpointstep == -1) {
     if (cams_ctx.stifflyaccurate) {
@@ -389,6 +383,12 @@ int offline_cams(int lastcheckpointstep, int lastcheckpointtype, int num_checkpo
         *nextcheckpointstep = 0;
       }
     }
+    return 0;
+  }
+
+  if (s == 1 || m < 2 || (m == 2 && lastcheckpointtype==0 && s<l+1)) {
+    *nextcheckpointtype = -1;
+    *nextcheckpointstep = -1;
     return 0;
   }
 
@@ -451,6 +451,10 @@ int offline_ca_destroy()
   return 0;
 }
 
+/*
+  This is for solution_only mode.
+  num_checkpoints_avail includes the last checkpoint.
+*/
 int offline_ca(int lastcheckpointstep, int num_checkpoints_avail, int endstep, int *nextcheckpointstep)
 {
   int m = endstep-lastcheckpointstep,s = num_checkpoints_avail;
@@ -462,14 +466,15 @@ int offline_ca(int lastcheckpointstep, int num_checkpoints_avail, int endstep, i
     return 0;
   }
   if (s < 1) return 1;
+  if (lastcheckpointstep == -1) {
+    *nextcheckpointstep = 0;
+    return 0;
+  }
   if (s == 1 || m < 3) {
     *nextcheckpointstep = -1;
     return 0;
   }
-  if (lastcheckpointstep == -1 && s>0)
-    *nextcheckpointstep = 0;
-  else
-    *nextcheckpointstep = lastcheckpointstep + PPATH(s,m,ca_ctx.m);
+  *nextcheckpointstep = lastcheckpointstep + PPATH(s,m,ca_ctx.m);
   return 0;
 }
 
