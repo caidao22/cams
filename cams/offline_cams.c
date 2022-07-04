@@ -342,7 +342,7 @@ int offline_cams_destroy()
     free(cams_ctx.P);
     free(cams_ctx.PPATH);
     free(cams_ctx.PTYPE);
-    if (cams_ctx.stifflyaccurate) {
+    if (!cams_ctx.stifflyaccurate) {
       free(cams_ctx.Q);
       free(cams_ctx.QPATH);
       free(cams_ctx.QTYPE);
